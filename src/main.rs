@@ -13,8 +13,8 @@ enum Command {
     Stop {topic: Option<String>},
 }
 
-fn main() {
-    let tt = TimeTracker::new();
+fn main() -> Result<(), rusqlite::Error> {
+    let tt = TimeTracker::new()?;
     let args = InputEntry::parse();
     match &args.command {
         Command::Start { topic } => {
@@ -27,6 +27,8 @@ fn main() {
     }
 
     let timetracker = tt::TimeTracker::new();
+
+    Ok(())
 }
 
 // TODO

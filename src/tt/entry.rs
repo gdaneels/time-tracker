@@ -1,5 +1,7 @@
 use chrono::prelude::*;
 
+// implement a debug trait for Entry
+
 pub struct Entry {
     pub(super) timestamp: DateTime<Local>,
     pub(super) topic: String,
