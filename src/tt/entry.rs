@@ -5,20 +5,26 @@ use std::fmt;
 
 #[derive(Debug)]
 pub struct Entry {
-    pub(super) timestamp: DateTime<Local>,
+    pub(super) start_timestamp: DateTime<Local>,
+    pub(super) stop_timestamp: Option<DateTime<Local>>,
     pub(super) topic: String,
 }
 
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Entry: {} - {}", self.timestamp, self.topic)
+        if let Some(stop_timestamp) = self.stop_timestamp {
+            write!(f, "Entry: {} - {} - {}", self.start_timestamp, stop_timestamp, self.topic)
+        } else {
+            write!(f, "Entry: {} - ... - {}", self.start_timestamp, self.topic)
+        }
     }
 }
 
 impl Default for Entry {
     fn default() -> Self {
         Entry {
-            timestamp: Local::now(),
+            start_timestamp: Local::now(),
+            stop_timestamp: None,
             topic: String::from("no topic")
         }
     }
@@ -27,7 +33,8 @@ impl Default for Entry {
 impl Entry {
     pub fn new(topic: String) -> Self {
         Entry {
-            timestamp: Local::now(),
+            start_timestamp: Local::now(),
+            stop_timestamp: None,
             topic,
         }
     }

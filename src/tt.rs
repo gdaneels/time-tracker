@@ -26,7 +26,7 @@ impl TimeTracker {
     pub fn start(&self, topic: String) {
         let entry = entry::Entry::new(topic);
         self.database.add(&entry);
-        println!("Starting timer for topic {:?} at time {:?}.", entry.topic, entry.timestamp);
+        println!("Starting timer for topic {:?} at time {:?}.", entry.topic, entry.start_timestamp);
     }
 
     pub fn stop(&self) {

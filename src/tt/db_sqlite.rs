@@ -17,7 +17,8 @@ impl DatabaseSqlite {
         self.connection.execute(
             "CREATE TABLE IF NOT EXISTS tt (
                 id INTEGER PRIMARY KEY,
-                timestamp TEXT NOT NULL,
+                start_timestamp TEXT NOT NULL,
+                stop_timestamp TEXT,
                 topic TEXT NOT NULL
             )",
             [],
@@ -26,19 +27,21 @@ impl DatabaseSqlite {
     }
 
     pub fn add(&self, entry: &Entry) -> rusqlite::Result<()> {
-        let timestamp = entry.timestamp.format("%Y-%m-%d %H:%M:%S").to_string();
+        let start_timestamp = entry.start_timestamp.format("%Y-%m-%d %H:%M:%S").to_string();
         self.connection.execute(
-            "INSERT INTO tt (timestamp, topic) VALUES (?1, ?2)",
-            (entry.timestamp, &entry.topic),
+            "INSERT INTO tt (start_timestamp, stop_timestamp, topic) VALUES (?1, NULL, ?2)",
+            (entry.start_timestamp, &entry.topic),
         )?;
         Ok(())
     }
 
     pub fn current(&self) -> rusqlite::Result<Entry> {
-        self.connection.query_row("SELECT * FROM tt ORDER BY timestamp DESC LIMIT 1", [], |row| {
+        self.connection.query_row("SELECT start_timestamp, topic FROM tt ORDER BY start_timestamp DESC LIMIT 1", [], |row| {
+            println!("row: {:?}", row);
             Ok(Entry {
-                timestamp: row.get(1)?,
-                topic: row.get(2)?,
+                start_timestamp: row.get(0)?,
+                topic: row.get(1)?,
+                ..Default::default()
             })
         })
     }
