@@ -17,7 +17,7 @@ impl DatabaseSqlite {
         self.connection.execute(
             "CREATE TABLE IF NOT EXISTS tt (
                 id INTEGER PRIMARY KEY,
-                timestamp DATE NOT NULL,
+                timestamp TEXT NOT NULL,
                 topic TEXT NOT NULL
             )",
             [],
@@ -25,11 +25,21 @@ impl DatabaseSqlite {
         Ok(())
     }
 
-    // pub fn add(&self, entry: Entry) -> rusqlite::Result<()> {
-    //     self.connection.execute(
-    //         "INSERT INTO tt (timestamp, topic) VALUES (?1, ?2)",
-    //         (entry.timestamp, entry.topic),
-    //     )?;
-    //     Ok(())
-    // }
+    pub fn add(&self, entry: &Entry) -> rusqlite::Result<()> {
+        self.connection.execute(
+            "INSERT INTO tt (timestamp, topic) VALUES (?1, ?2)",
+            (entry.timestamp.to_string(), &entry.topic),
+        )?;
+        Ok(())
+    }
+
+    pub fn current(&self) -> rusqlite::Result<Entry> {
+        self.connection.query_row("SELECT * FROM tt ORDER BY timestamp DESC LIMIT 1", [], |row| {
+            Ok(Entry {
+                // timestamp: row.get(1)?,
+                topic: row.get(2)?,
+                ..Default::default()
+            })
+        })
+    }
 }

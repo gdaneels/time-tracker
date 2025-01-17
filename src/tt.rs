@@ -25,6 +25,7 @@ impl TimeTracker {
 
     pub fn start(&self, topic: String) {
         let entry = entry::Entry::new(topic);
+        self.database.add(&entry);
         println!("Starting timer for topic {:?} at time {:?}.", entry.topic, entry.timestamp);
     }
 
@@ -34,5 +35,10 @@ impl TimeTracker {
         } else {
             println!("Not working on anything currently...");
         }
+    }
+    
+    /// Show the current tracked topic.
+    pub fn show_current(&self) {
+        let current_entry = self.database.current();
     }
 }
