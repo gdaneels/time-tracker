@@ -9,6 +9,7 @@ struct InputEntry {
 
 #[derive(Subcommand, Debug)]
 enum Command {
+    Current,
     Start {topic: Option<String>},
     Stop {topic: Option<String>},
 }
@@ -23,6 +24,9 @@ fn main() -> Result<(), rusqlite::Error> {
         },
         Command::Stop { .. } => {
             tt.stop();
+        },
+        Command::Current => {
+            tt.show_current();
         },
     }
 

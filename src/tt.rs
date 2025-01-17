@@ -39,6 +39,10 @@ impl TimeTracker {
     
     /// Show the current tracked topic.
     pub fn show_current(&self) {
-        let current_entry = self.database.current();
+        if let Ok(entry) = self.database.current() {
+            println!("Current topic: {}", entry);
+        } else {
+            println!("No current topic.");
+        }
     }
 }

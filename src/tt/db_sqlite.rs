@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result};
+use rusqlite::{Connection, Result, ToSql};
 use super::entry::Entry;
 
 pub struct DatabaseSqlite {
@@ -7,7 +7,7 @@ pub struct DatabaseSqlite {
 
 impl DatabaseSqlite {
     pub fn new() -> rusqlite::Result<Self> {
-        let connection = Connection::open_in_memory()?;
+        let connection = Connection::open("./tt.db")?;
         let db_sqlite = DatabaseSqlite { connection };
         db_sqlite.create_table()?;
         Ok(db_sqlite)
@@ -26,9 +26,10 @@ impl DatabaseSqlite {
     }
 
     pub fn add(&self, entry: &Entry) -> rusqlite::Result<()> {
+        let timestamp = entry.timestamp.format("%Y-%m-%d %H:%M:%S").to_string();
         self.connection.execute(
             "INSERT INTO tt (timestamp, topic) VALUES (?1, ?2)",
-            (entry.timestamp.to_string(), &entry.topic),
+            (entry.timestamp, &entry.topic),
         )?;
         Ok(())
     }
@@ -36,9 +37,8 @@ impl DatabaseSqlite {
     pub fn current(&self) -> rusqlite::Result<Entry> {
         self.connection.query_row("SELECT * FROM tt ORDER BY timestamp DESC LIMIT 1", [], |row| {
             Ok(Entry {
-                // timestamp: row.get(1)?,
+                timestamp: row.get(1)?,
                 topic: row.get(2)?,
-                ..Default::default()
             })
         })
     }
