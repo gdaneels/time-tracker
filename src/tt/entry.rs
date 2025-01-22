@@ -13,9 +13,13 @@ pub struct Entry {
 impl fmt::Display for Entry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(stop_timestamp) = self.stop_timestamp {
-            write!(f, "Entry: {} - {} - {}", self.start_timestamp, stop_timestamp, self.topic)
+            write!(
+                f,
+                "Entry: {} > {} - {}",
+                self.start_timestamp, stop_timestamp, self.topic
+            )
         } else {
-            write!(f, "Entry: {} - ... - {}", self.start_timestamp, self.topic)
+            write!(f, "Entry: {} > (ongoing) - {}", self.start_timestamp, self.topic)
         }
     }
 }
@@ -25,7 +29,7 @@ impl Default for Entry {
         Entry {
             start_timestamp: Local::now(),
             stop_timestamp: None,
-            topic: String::from("no topic")
+            topic: String::from("no topic"),
         }
     }
 }
@@ -37,5 +41,10 @@ impl Entry {
             stop_timestamp: None,
             topic,
         }
+    }
+
+    pub fn stop(&mut self) {
+        self.stop_timestamp = Some(Local::now());
+
     }
 }
