@@ -45,6 +45,5 @@ impl Entry {
 
     pub fn stop(&mut self) {
         self.stop_timestamp = Some(Local::now());
-
     }
 }

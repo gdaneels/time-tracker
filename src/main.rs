@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use tt::TimeTracker;
-use tt::DatabaseSqlite;
+use tt::db_sqlite;
 
 #[derive(Parser, Debug)]
 struct InputEntry {
@@ -11,13 +11,14 @@ struct InputEntry {
 #[derive(Subcommand, Debug)]
 enum Command {
     Current,
+    Latest,
     All,
     Start { topic: Option<String> },
     Stop { topic: Option<String> },
 }
 
 fn main() -> Result<(), rusqlite::Error> {
-    let tt = TimeTracker::new()?;
+    let mut tt: TimeTracker<db_sqlite::DatabaseSqlite> = TimeTracker::new()?;
     let args = InputEntry::parse();
     match &args.command {
         Command::Start { topic } => {
@@ -27,6 +28,9 @@ fn main() -> Result<(), rusqlite::Error> {
         Command::Stop { .. } => {
             tt.stop();
         }
+        Command::Latest => {
+            tt.print_latest();
+        }
         Command::Current => {
             tt.print_current();
         }
@@ -34,8 +38,6 @@ fn main() -> Result<(), rusqlite::Error> {
             tt.print_all();
         }
     }
-
-    let timetracker = tt::TimeTracker::new();
 
     Ok(())
 }

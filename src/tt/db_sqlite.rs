@@ -1,6 +1,6 @@
+use super::db;
 use super::entry::Entry;
 use rusqlite::Connection;
-use super::db;
 
 pub struct DatabaseSqlite {
     connection: Connection,
@@ -29,12 +29,7 @@ impl db::Database for DatabaseSqlite {
         Ok(db_sqlite)
     }
 
-
     fn add(&self, entry: &Entry) -> rusqlite::Result<()> {
-        let start_timestamp = entry
-            .start_timestamp
-            .format("%Y-%m-%d %H:%M:%S")
-            .to_string();
         self.connection.execute(
             "INSERT INTO tt (start_timestamp, stop_timestamp, topic) VALUES (?1, NULL, ?2)",
             (entry.start_timestamp, &entry.topic),
@@ -42,11 +37,31 @@ impl db::Database for DatabaseSqlite {
         Ok(())
     }
 
-    fn update(&self, _entry: &Entry) -> rusqlite::Result<()> {
-        todo!();
+    fn update(&self, entry: &Entry) -> rusqlite::Result<()> {
+        match self.connection.execute(
+            "UPDATE tt SET stop_timestamp = ?1, topic =?2 WHERE start_timestamp = ?3",
+            (entry.stop_timestamp, &entry.topic, entry.start_timestamp),
+        ) {
+            Ok(updated) => println!("updated {:?} rows", updated),
+            Err(err) => println!("updating went wrong {:?}", err)
+        }
+        Ok(())
     }
 
     fn current(&self) -> rusqlite::Result<Entry> {
+        self.connection.query_row("SELECT start_timestamp, stop_timestamp, topic FROM (SELECT * FROM tt ORDER BY start_timestamp DESC LIMIT 1) WHERE stop_timestamp IS NULL",
+            [],
+            |row| {
+                Ok(Entry {
+                    start_timestamp: row.get(0)?,
+                    stop_timestamp: row.get(1)?,
+                    topic: row.get(2)?,
+                })
+            },
+        )
+    }
+
+    fn latest(&self) -> rusqlite::Result<Entry> {
         self.connection.query_row(
             "SELECT start_timestamp, stop_timestamp, topic FROM tt ORDER BY start_timestamp DESC LIMIT 1",
             [],
@@ -65,12 +80,12 @@ impl db::Database for DatabaseSqlite {
     fn all(&self) -> rusqlite::Result<Vec<Entry>> {
         let mut statement = self
             .connection
-            .prepare("SELECT start_timestamp, topic FROM tt")?;
+            .prepare("SELECT start_timestamp, stop_timestamp, topic FROM tt")?;
         let entries = statement.query_map([], |row| {
             Ok(Entry {
                 start_timestamp: row.get(0)?,
-                topic: row.get(1)?,
-                ..Default::default()
+                stop_timestamp: row.get(1)?,
+                topic: row.get(2)?,
             })
         })?;
         let mut result = Vec::new();
