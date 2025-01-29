@@ -17,7 +17,7 @@ enum Command {
     Stop { topic: Option<String> },
 }
 
-fn main() -> Result<(), rusqlite::Error> {
+fn main() -> Result<(), tt::DatabaseError> {
     let mut tt: TimeTracker<db_sqlite::DatabaseSqlite> = TimeTracker::new()?;
     let args = InputEntry::parse();
     match &args.command {

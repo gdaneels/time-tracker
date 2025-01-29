@@ -3,6 +3,7 @@
 //! This module contains the basic building blocks for the time tracker library crate.
 
 mod db;
+pub use db::DatabaseError;
 pub mod db_sqlite;
 mod entry;
 
@@ -18,7 +19,7 @@ where
     T: db::Database,
 {
     /// Creates a new instance of the Time Tracker.
-    pub fn new() -> rusqlite::Result<Self> {
+    pub fn new() -> Result<Self, DatabaseError> {
         let database = T::new()?;
         let latest = match database.latest() {
             Ok(entry) => Some(entry),
@@ -63,7 +64,10 @@ where
             entry.stop();
             if self.database.update(entry).is_err() {
                 // todo: should rollback stop timestamp of latest entry if this fails
-                println!("Could not update latest entry with new stop timestamp: {:?}", entry);
+                println!(
+                    "Could not update latest entry with new stop timestamp: {:?}",
+                    entry
+                );
             } else {
                 println!("Stop working on topic: {:?}", entry);
             }
@@ -91,12 +95,15 @@ where
     }
 
     pub fn print_all(&self) {
-        if let Ok(entries) = self.database.all() {
-            for entry in entries {
-                println!("{}", entry);
+        match self.database.all() {
+            Ok(entries) => {
+                for entry in entries {
+                    println!("{}", entry);
+                }
             }
-        } else {
-            println!("No entries found.");
+            Err(err) => {
+                println!("No entries found ({}).", err);
+            }
         }
     }
 }
